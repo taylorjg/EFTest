@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace EFTest
 {
@@ -50,7 +51,7 @@ namespace EFTest
 
         static void ListRecords(MyDbContext db)
         {
-            foreach (var thing in db.Things)
+            foreach (var thing in db.Things.AsNoTracking())
                 DumpRecord(thing);
         }
 
