@@ -5,13 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EFTest
 {
-    using Handler = Func<MyDbContext, bool>;
+    using HandlerAction = Action<MyDbContext>;
+    using HandlerFunc = Func<MyDbContext, bool>;
 
     class Program
     {
         static void Main(string[] args)
         {
-            var table = new Dictionary<Char, Handler>() {
+            var table = new Dictionary<Char, HandlerFunc>() {
                 { 'l', NoQuit(ListRecords)},
                 { 'c', NoQuit(CreateRecord)},
                 { 'd', NoQuit(DeleteRecord)},
@@ -34,7 +35,7 @@ namespace EFTest
 
                 var input = Console.ReadLine();
                 var command = input.FirstOrDefault();
-                Handler handler;
+                HandlerFunc handler;
                 if (!table.TryGetValue(command, out handler))
                 {
                     Console.Error.WriteLine($"Unknown command, '{command}'.");
@@ -91,7 +92,7 @@ namespace EFTest
             });
         }
 
-        static Handler NoQuit(Action<MyDbContext> handler)
+        static HandlerFunc NoQuit(HandlerAction handler)
         {
             return db =>
             {
