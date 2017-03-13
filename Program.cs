@@ -56,73 +56,38 @@ namespace EFTest
 
         static void CreateRecord(MyDbContext db)
         {
-            Console.Write("First name: ");
-            var firstName = Console.ReadLine();
-
-            Console.Write("Last name: ");
-            var lastName = Console.ReadLine();
-
-            Console.Write("Email: ");
-            var email = Console.ReadLine();
-
-            var record = new Thing {
-                FirstName = firstName,
-                LastName = lastName,
-                Email = email
+            var record = new Thing
+            {
+                FirstName = PromptFor("First name", string.Empty),
+                LastName = PromptFor("Last name", string.Empty),
+                Email = PromptFor("Email", string.Empty)
             };
 
-            db.Things.Add(record);            
+            db.Things.Add(record);
             db.SaveChanges();
             DumpRecord(record);
         }
 
         static void DeleteRecord(MyDbContext db)
         {
-            Console.Write("Enter the id of the record to delete: ");
-            var input = Console.ReadLine();
-
-            var id = int.Parse(input);
-            var record = db.Things.Find(id);
-
-            if (record == null)
+            Lookup("Enter the id of the record to delete: ", db, record =>
             {
-                Console.Error.WriteLine($"Failed to find a record with id, '{id}'.");
-                return;
-            }
-
-            db.Things.Remove(record);
-            db.SaveChanges();
+                db.Things.Remove(record);
+                db.SaveChanges();
+            });
         }
 
         static void UpdateRecord(MyDbContext db)
         {
-            Console.Write("Enter the id of the record to update: ");
-            var input = Console.ReadLine();
-
-            var id = int.Parse(input);
-            var record = db.Things.Find(id);
-            
-            if (record == null)
+            Lookup("Enter the id of the record to update: ", db, record =>
             {
-                Console.Error.WriteLine($"Failed to find a record with id, '{id}'.");
-                return;
-            }
+                record.FirstName = PromptFor("First name", record.FirstName);
+                record.LastName = PromptFor("Last name", record.LastName);
+                record.Email = PromptFor("Email", record.Email);
 
-            Console.Write($"First name [{record.FirstName}]: ");
-            var firstName = Console.ReadLine();
-
-            Console.Write($"Last name [{record.LastName}]: ");
-            var lastName = Console.ReadLine();
-
-            Console.Write($"Email [{record.Email}]: ");
-            var email = Console.ReadLine();
-
-            record.FirstName = firstName.Length > 0 ? firstName : record.FirstName;
-            record.LastName = lastName.Length > 0 ? lastName : record.LastName;
-            record.Email = email.Length > 0 ? email : record.Email;
-
-            db.SaveChanges();
-            DumpRecord(record);
+                db.SaveChanges();
+                DumpRecord(record);
+            });
         }
 
         static Handler NoQuit(Action<MyDbContext> handler)
@@ -132,6 +97,40 @@ namespace EFTest
                 handler(db);
                 return false;
             };
+        }
+
+        static void Lookup(string prompt, MyDbContext db, Action<Thing> handler)
+        {
+            Console.Write(prompt);
+            var input = Console.ReadLine();
+
+            int id;
+            if (!int.TryParse(input, out id))
+            {
+                Console.Error.WriteLine($"Invalid input, '{input}'.");
+                return;
+            }
+
+            var record = db.Things.Find(id);
+            if (record == null)
+            {
+                Console.Error.WriteLine($"Failed to find a record with id, '{id}'.");
+                return;
+            }
+
+            handler(record);
+        }
+
+        static string PromptFor(string prompt, string defaultValue = null)
+        {
+            if (!String.IsNullOrEmpty(defaultValue))
+                Console.Write($"{prompt} [{defaultValue}]: ");
+            else
+                Console.Write($"{prompt}: ");
+
+            var input = Console.ReadLine();
+
+            return input?.Length > 0 ? input : defaultValue;
         }
 
         static void DumpRecord(Thing thing)
