@@ -35,8 +35,7 @@ namespace EFTest
 
                 var input = Console.ReadLine();
                 var command = input.FirstOrDefault();
-                HandlerFunc handler;
-                if (!table.TryGetValue(command, out handler))
+                if (!table.TryGetValue(command, out var handler))
                 {
                     Console.Error.WriteLine($"Unknown command, '{command}'.");
                     continue;
@@ -106,8 +105,7 @@ namespace EFTest
             Console.Write(prompt);
             var input = Console.ReadLine();
 
-            int id;
-            if (!int.TryParse(input, out id))
+            if (!int.TryParse(input, out var id))
             {
                 Console.Error.WriteLine($"Invalid input, '{input}'.");
                 return;
